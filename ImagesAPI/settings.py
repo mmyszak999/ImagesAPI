@@ -92,6 +92,7 @@ DATABASES = {
         'PASSWORD': config('POSTGRES_PASSWORD'),
         'HOST': config('POSTGRES_HOST'),
         'PORT': config('POSTGRES_PORT'),
+        'DISABLE_SERVER_SIDE_CURSORS': config('DISABLE_SERVER_SIDE_CURSORS', cast=bool, default=True)
     }
 }
 """DATABASES = {

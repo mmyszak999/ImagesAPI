@@ -1,11 +1,11 @@
 from django.db import models
-
-from api.custom_fields import CommaSepField
+from django.core.validators import validate_comma_separated_integer_list
 
 
 class AccountTier(models.Model):
     tier_name = models.CharField(max_length=75, default="Basic")
-    thumbnail_sizes = CommaSepField()
+    thumbnail_sizes = models.CharField(max_length=150, validators=[validate_comma_separated_integer_list],
+                                       null=True, default=None)
     original_link = models.BooleanField(default=False)
     expiring_links = models.BooleanField(default=False)
     min_expiring_time = models.PositiveIntegerField(default=0)

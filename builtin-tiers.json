@@ -1,0 +1,38 @@
+[
+ {
+    "fields": {
+      "tier_name": "Basic",
+      "thumbnail_sizes": "200",
+      "original_link": false,
+      "expiring_links": false,
+      "min_expiring_time": 0,
+      "max_expiring_time": 0
+    },
+    "model": "api.accounttier",
+    "pk": 1
+  },
+    {
+    "fields": {
+      "tier_name": "Premium",
+      "thumbnail_sizes": "200, 400",
+      "original_link": true,
+      "expiring_links": false,
+      "min_expiring_time": 0,
+      "max_expiring_time": 0
+    },
+    "model": "api.accounttier",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "tier_name": "Enterprise",
+      "thumbnail_sizes": "200, 400",
+      "original_link": true,
+      "expiring_links": true,
+      "min_expiring_time": 300,
+      "max_expiring_time": 30000
+    },
+    "model": "api.accounttier",
+    "pk": 3
+  }
+]

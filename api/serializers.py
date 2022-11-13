@@ -24,7 +24,7 @@ class ImageOutputSerializer(ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('id', 'caption', 'thumbnails', 'image_name', 'image_owner',)
+        fields = ('id', 'caption', 'image_name', 'image_owner', 'image_height', 'image_width')
         read_only_fields = fields
 
 
@@ -38,7 +38,7 @@ class AccountOutputSerializer(ModelSerializer):
         read_only_fields = fields
 
 
-class AccountTierInputSerializer(Serializer):
+"""class AccountTierInputSerializer(Serializer):
     tier_name = CharField()
     thumbnail_sizes = CharField()
     original_link = BooleanField()
@@ -53,7 +53,7 @@ class AccountTierOutputSerializer(ModelSerializer):
         fields = ('id', 'tier_name',
                   'thumbnail_sizes', 'original_link', 'expiring_links',
                   'min_expiring_time', 'max_expiring_time',)
-        read_only_fields = fields
+        read_only_fields = fields"""
 
 
 

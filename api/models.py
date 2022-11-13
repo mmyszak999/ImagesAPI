@@ -23,22 +23,21 @@ class Account(models.Model):
         return self.owner.username
 
 
-class Thumbnail(models.Model):
-    thumbnail = models.ImageField(upload_to='images/', default=None, blank=True)
-
-
 class Image(models.Model):
     image_file = models.ImageField(
         upload_to="images/", default=None, blank=True, height_field='image_height', width_field='image_width'
     )
     image_height = models.PositiveIntegerField(default=0)
     image_width = models.PositiveIntegerField(default=0)
-    thumbnails = models.ForeignKey(Thumbnail, on_delete=models.CASCADE)
     caption = models.CharField(max_length=75, default=None, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.caption
+
+
+class Thumbnail(models.Model):
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, default=None)
 
 
 

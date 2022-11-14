@@ -6,16 +6,16 @@ from rest_framework.serializers import (
     BooleanField,
     ReadOnlyField,
     IntegerField
-
 )
+from versatileimagefield.serializers import VersatileImageFieldSerializer
+from versatileimagefield.fields import VersatileImageField
 
 from api.models import Image, Account, AccountTier, Thumbnail
-from api.custom_fields import CommaSepField
 
 
 class ImageInputSerializer(Serializer):
     caption = CharField()
-    image = ImageField()
+    image_file = VersatileImageField()
 
 
 class ImageOutputSerializer(ModelSerializer):
@@ -24,7 +24,7 @@ class ImageOutputSerializer(ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('id', 'caption', 'image_name', 'image_owner', 'image_height', 'image_width')
+        fields = ('id', 'caption', 'image_name', 'image_file', 'image_owner')
         read_only_fields = fields
 
 
@@ -36,6 +36,16 @@ class AccountOutputSerializer(ModelSerializer):
         model = Account
         fields = ('id', 'owner', 'account_tier', 'owner_name', 'tier_name',)
         read_only_fields = fields
+
+
+class ThumbnailOutputSerializer(VersatileImageFieldSerializer):
+    class Meta:
+        model = Thumbnail
+        fields = ('id', 'media')
+        read_only_fields = fields
+
+
+
 
 
 """class AccountTierInputSerializer(Serializer):

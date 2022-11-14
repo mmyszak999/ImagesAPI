@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import validate_comma_separated_integer_list
+from versatileimagefield.fields import VersatileImageField, PPOIField
 
 
 class AccountTier(models.Model):
@@ -24,13 +25,14 @@ class Account(models.Model):
 
 
 class Image(models.Model):
-    image_file = models.ImageField(
-        upload_to="images/", default=None, blank=True, height_field='image_height', width_field='image_width'
+    image_file = VersatileImageField(
+        'Image',
+        upload_to='images/',
+        ppoi_field='image_ppoi'
     )
-    image_height = models.PositiveIntegerField(default=0)
-    image_width = models.PositiveIntegerField(default=0)
     caption = models.CharField(max_length=75, default=None, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    image_ppoi = PPOIField()
 
     def __str__(self):
         return self.caption

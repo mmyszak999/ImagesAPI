@@ -7,9 +7,9 @@ from django.shortcuts import get_object_or_404
 
 
 from api.serializers import (
-    ImageInputSerializer, ImageOutputSerializer, AccountOutputSerializer,
+    ImageInputSerializer, ImageOutputSerializer, AccountOutputSerializer, ThumbnailOutputSerializer
 )
-from api.models import Image, Account, AccountTier
+from api.models import Image, Account, Thumbnail
 
 
 class AccountView(GenericViewSet, ListModelMixin):
@@ -74,6 +74,14 @@ class ImageView(GenericViewSet, ListModelMixin, CreateModelMixin):
 class ImageDetailView(GenericViewSet, RetrieveModelMixin):
     queryset = Image.objects.all()
 
+    def get_object(self):
+        pk = self.kwargs['image_pk']
+        account_id = self.kwargs['pk']
+        image = Image.objects.filter(account=account_id).select_related('account')
+        if self.request.user.is_superuser:
+            return get_object_or_404(image, pk=pk)
+        return get_object_or_404(Image, pk=pk, task_list__owner=self.request.user)
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return ImageOutputSerializer
@@ -81,3 +89,11 @@ class ImageDetailView(GenericViewSet, RetrieveModelMixin):
 
     def get_one(self, request: Request, pk: int, image_pk: int) -> Response:
         return self.retrieve(request, pk, image_pk)
+
+
+class ThumbnailView(GenericViewSet, ListModelMixin):
+    serializer_class = ThumbnailOutputSerializer
+    queryset = Thumbnail.objects.all()
+
+    def get(self, request: Request, pk: int, image_pk: int) -> Response:
+        return self.list(request, pk, image_pk)

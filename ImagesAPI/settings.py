@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,7 +33,7 @@ ALLOWED_HOSTS = [config('ALLOWED_HOSTS')]
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,9 +46,10 @@ INSTALLED_APPS = [
 
     # 3rd party apps
     'rest_framework',
-    'corsheaders'
+    'versatileimagefield',
+    'corsheaders',
 
-]
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -143,3 +146,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
+

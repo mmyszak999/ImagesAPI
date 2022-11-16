@@ -10,7 +10,7 @@ from api.serializers import (
     ImageInputSerializer, ImageOutputSerializer, AccountOutputSerializer, ImageMediaSerializer
 )
 from api.services import ImageMediaCreate
-from ImagesAPI.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS, DEBUG
+from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS, DEBUG
 
 
 class AccountView(GenericViewSet, ListModelMixin):
@@ -105,7 +105,7 @@ class ImageMediaView(GenericViewSet, RetrieveModelMixin):
         image = Image.objects.filter(account=account_id).select_related('account')
         if self.request.user.is_superuser:
             return get_object_or_404(image, pk=pk)
-        return get_object_or_404(Image, pk=pk, task_list__owner=self.request.user)
+        return get_object_or_404(Image, pk=pk, account__owner=self.request.user)
 
     def get(self, request: Request, pk: int, image_pk: int) -> Response:
         service = ImageMediaCreate()
@@ -113,9 +113,10 @@ class ImageMediaView(GenericViewSet, RetrieveModelMixin):
         account_tier = service.get_account_tier_instance(pk)
         thumbnail_sizes = service.get_thumbnail_sizes_list(account_tier)
         original_link_access = service.check_access_to_original_image(account_tier)
-        sizes = service.create_sizes_schema(thumbnail_sizes, original_link_access, instance)
+        sizes = service.create_sizes_schema(thumbnail_sizes, original_link_access, instance, account_tier)
 
         if DEBUG:
             VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['media_sizes'] = sizes
+
 
         return self.retrieve(request, pk, image_pk)

@@ -8,7 +8,8 @@
 # Databases
 db.sqlite3
 
-# React dependencies
+# Media directories
+/images
 
 #Files with environmental variables
 .env

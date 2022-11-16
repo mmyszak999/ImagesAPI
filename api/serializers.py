@@ -31,7 +31,6 @@ class ImageMediaSerializer(ModelSerializer):
 
     image_file = VersatileImageFieldSerializer(
         sizes='media_sizes')
-    print('serializer', image_file.sizes)
 
     class Meta:
         model = Image

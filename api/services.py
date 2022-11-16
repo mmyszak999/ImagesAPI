@@ -1,10 +1,9 @@
 from typing import OrderedDict
-from django.contrib.auth.models import User
-from rest_framework.fields import CharField
 
 from api.serializers import ImageInputSerializer, ImageMediaSerializer
 from api.entities.service_entities import ImageEntity
 from api.models import Account, Image, AccountTier
+from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
 
 
 class ImageCreateService:
@@ -39,7 +38,6 @@ class ImageCreateService:
 
 
 class ImageMediaCreate:
-
     sizes = []
 
     def get_account_tier_instance(self, account_pk: int) -> AccountTier:
@@ -52,10 +50,33 @@ class ImageMediaCreate:
     def check_access_to_original_image(self, account_tier: AccountTier) -> bool:
         return account_tier.original_link
 
-    def create_sizes_schema(self, sizes_list: get_thumbnail_sizes_list, access_to_original: bool, image_instance: Image) -> list:
-        if access_to_original:
-            self.sizes.append(('full_size', 'url'),)
-        for size in sizes_list:
-            self.sizes.append((f'{str(size)}px', f'thumbnail__{image_instance.width}x{size}',))
-        return self.sizes
+    def create_sizes_schema(self, sizes_list: list[int], access_to_original: bool, image_instance: Image,
+                            account_tier: AccountTier) -> list:
+        actual_sizes = VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['media_sizes']
+        if not actual_sizes:
+            if AccountTier.original_link and access_to_original:
+                self.sizes.append(('full_size', 'url'), )
+            for size in sizes_list:
+                self.sizes.append((f'{str(size)}', f'thumbnail__{image_instance.width}x{size}',))
+            return self.sizes
 
+        else:
+            if access_to_original:
+                if ('full_size', 'url') not in actual_sizes:
+                    actual_sizes.append(('full_size', 'url'))
+            else:
+                if ('full_size', 'url') in actual_sizes:
+                    actual_sizes.remove(('full_size', 'url'))
+
+            wrongs = []
+            for index, element in enumerate(actual_sizes):
+                if element == ('full_size', 'url'):
+                    pass
+                if str(element[0]) not in sizes_list and element != ('full_size', 'url'):
+                    wrongs.append(tuple(element))
+            for element in wrongs:
+                actual_sizes.remove(element)
+            for size in sizes_list:
+                actual_sizes.append((f'{str(size)}', f'thumbnail__{image_instance.width}x{size}',))
+
+            return actual_sizes

@@ -1,9 +1,7 @@
 from rest_framework.serializers import (
     Serializer,
     ModelSerializer,
-    CharField,
     ImageField,
-    BooleanField,
     ReadOnlyField,
     IntegerField
 )
@@ -13,19 +11,31 @@ from versatileimagefield.fields import VersatileImageField
 from api.models import Image, Account, AccountTier, Thumbnail
 
 
-class ImageInputSerializer(Serializer):
-    caption = CharField()
-    image_file = VersatileImageField()
-
-
-class ImageOutputSerializer(ModelSerializer):
-    image_name = ReadOnlyField(source='image.name')
-    image_owner = ReadOnlyField(source='account.owner.username')
+class ImageInputSerializer(ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('id', 'caption', 'image_name', 'image_file', 'image_owner')
+        fields = ('id', 'image_file', 'caption', 'account')
+
+
+class ImageOutputSerializer(ModelSerializer):
+    image_name = ReadOnlyField(source="image_file.name")
+
+    class Meta:
+        model = Image
+        fields = ('id', 'caption', 'account', 'width', 'height', 'image_name')
         read_only_fields = fields
+
+
+class ImageMediaSerializer(ModelSerializer):
+
+    image_file = VersatileImageFieldSerializer(
+        sizes='media_sizes')
+    print('serializer', image_file.sizes)
+
+    class Meta:
+        model = Image
+        fields = ('id', 'image_file')
 
 
 class AccountOutputSerializer(ModelSerializer):
@@ -38,22 +48,13 @@ class AccountOutputSerializer(ModelSerializer):
         read_only_fields = fields
 
 
-class ThumbnailOutputSerializer(VersatileImageFieldSerializer):
-    class Meta:
-        model = Thumbnail
-        fields = ('id', 'media')
-        read_only_fields = fields
-
-
-
-
 
 """class AccountTierInputSerializer(Serializer):
     tier_name = CharField()
     thumbnail_sizes = CharField()
     original_link = BooleanField()
     expiring_links = BooleanField()
-    min_expiring_time = IntegerField()
+    min_expiring_time = IntegerField()  
     max_expiring_time = IntegerField()
 
 
@@ -64,6 +65,3 @@ class AccountTierOutputSerializer(ModelSerializer):
                   'thumbnail_sizes', 'original_link', 'expiring_links',
                   'min_expiring_time', 'max_expiring_time',)
         read_only_fields = fields"""
-
-
-

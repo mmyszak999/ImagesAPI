@@ -13,7 +13,7 @@ urlpatterns = [
          name='image-images'),
     path('account/<int:pk>/image/<int:image_pk>/', views.ImageDetailView.as_view({'get': 'get_one'}),
          name='image-single-image'),
-    path('account/<int:pk>/image/<int:image_pk>/media/', views.ThumbnailView.as_view({'get': 'get'}),
-         name='thumbnail-media'),
+    path('account/<int:pk>/image/<int:image_pk>/media/', views.ImageMediaView.as_view({'get': 'get'}),
+         name='image-media'),
 ]
 

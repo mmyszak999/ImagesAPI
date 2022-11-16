@@ -18,17 +18,21 @@ class AccountTier(models.Model):
 
 class Account(models.Model):
     owner = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    account_tier = models.ForeignKey(AccountTier, on_delete=models.CASCADE)
+    account_tier = models.OneToOneField(AccountTier, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.owner.username
 
 
 class Image(models.Model):
+    width = models.PositiveIntegerField(default=0)
+    height = models.PositiveIntegerField(default=0)
     image_file = VersatileImageField(
         'Image',
         upload_to='images/',
-        ppoi_field='image_ppoi'
+        ppoi_field='image_ppoi',
+        width_field='width',
+        height_field='height'
     )
     caption = models.CharField(max_length=75, default=None, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -39,11 +43,4 @@ class Image(models.Model):
 
 
 class Thumbnail(models.Model):
-    image = models.ForeignKey(Image, on_delete=models.CASCADE, default=None)
-
-
-
-
-
-
-
+    image = models.OneToOneField(Image, on_delete=models.CASCADE, default=None)

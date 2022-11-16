@@ -15,7 +15,10 @@ from pathlib import Path
 
 from decouple import config
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import api
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -48,10 +51,12 @@ INSTALLED_APPS = (
     'rest_framework',
     'versatileimagefield',
     'corsheaders',
+    "django_browser_reload",
 
 )
 
 MIDDLEWARE = [
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -149,4 +154,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
+
+
+VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
+    'media_sizes': list()
+}
+
+print(VERSATILEIMAGEFIELD_RENDITION_KEY_SETS)
 

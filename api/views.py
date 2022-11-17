@@ -66,10 +66,7 @@ class ImageView(GenericViewSet, ListModelMixin, CreateModelMixin):
         return ImageInputSerializer
 
     def get(self, request: Request, pk: int) -> Response:
-        queryset = self.filter_queryset(self.get_queryset())
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return self.list(request, pk)
 
     def post(self, request: Request, pk: int) -> Response:
         return self.create(request, pk)
@@ -84,20 +81,28 @@ class ImageDetailView(GenericViewSet, RetrieveModelMixin):
         image = Image.objects.filter(account=account_id).select_related('account')
         if self.request.user.is_superuser:
             return get_object_or_404(image, pk=pk)
-        return get_object_or_404(Image, pk=pk, task_list__owner=self.request.user)
+        return get_object_or_404(Image, pk=pk, account__owner=self.request.user)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return ImageOutputSerializer
+            return ImageMediaSerializer
         return ImageInputSerializer
 
     def get_one(self, request: Request, pk: int, image_pk: int) -> Response:
+        service = ImageMediaCreate()
+        instance = self.get_object()
+        account_tier = service.get_account_tier_instance(pk)
+        thumbnail_sizes = service.get_thumbnail_sizes_list(account_tier)
+        original_link_access = service.check_access_to_original_image(account_tier)
+        sizes = service.create_sizes_schema(thumbnail_sizes, original_link_access, instance)
+
+        if DEBUG:
+            VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['media_sizes'] = sizes
         return self.retrieve(request, pk, image_pk)
 
 
-class ImageMediaView(GenericViewSet, RetrieveModelMixin):
+"""class ImageMediaView(GenericViewSet, RetrieveModelMixin):
     serializer_class = ImageMediaSerializer
-    queryset = Image.objects.all()
 
     def get_object(self):
         pk = self.kwargs['image_pk']
@@ -118,5 +123,4 @@ class ImageMediaView(GenericViewSet, RetrieveModelMixin):
         if DEBUG:
             VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['media_sizes'] = sizes
 
-
-        return self.retrieve(request, pk, image_pk)
+        return self.retrieve(request, pk, image_pk)"""

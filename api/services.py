@@ -5,14 +5,13 @@ from api.entities.service_entities import ImageEntity
 from api.models import Account, Image, AccountTier
 from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
 
-
-class ImageCreateService:
-    """def image_create(self, dto: ImageEntity, account_instance: Account) -> Image:
+"""class ImageCreateService:
+    def image_create(self, dto: ImageEntity, account_instance: Account) -> Image:
         return Image.objects.create(
             caption=dto.caption,
             image=dto.image,
             account=account_instance
-        )"""
+        )
 
     @classmethod
     def build_dto_from_request_data(cls, request_data: OrderedDict) -> ImageEntity:
@@ -35,6 +34,7 @@ class ImageCreateService:
             image_file=data["image_file"],
             account=account_instance
         )
+"""
 
 
 class ImageMediaCreate:
@@ -50,8 +50,8 @@ class ImageMediaCreate:
     def check_access_to_original_image(self, account_tier: AccountTier) -> bool:
         return account_tier.original_link
 
-    def create_sizes_schema(self, sizes_list: list[int], access_to_original: bool, image_instance: Image,
-                            account_tier: AccountTier) -> list:
+    def create_sizes_schema(self, sizes_list: list[int],
+                            access_to_original: bool, image_instance: Image) -> list:
         actual_sizes = VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['media_sizes']
         if not actual_sizes:
             if AccountTier.original_link and access_to_original:
@@ -71,8 +71,8 @@ class ImageMediaCreate:
             wrongs = []
             for index, element in enumerate(actual_sizes):
                 if element == ('full_size', 'url'):
-                    pass
-                if str(element[0]) not in sizes_list and element != ('full_size', 'url'):
+                    continue
+                if str(element[0]) not in sizes_list:
                     wrongs.append(tuple(element))
             for element in wrongs:
                 actual_sizes.remove(element)

@@ -4,11 +4,14 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, CreateMode
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.status import HTTP_201_CREATED
+
 
 from api.models import Image, Account
 from api.serializers import (
     ImageInputSerializer, ImageOutputSerializer, AccountOutputSerializer, ImageMediaSerializer
 )
+from api.validation import FileValidation
 from api.services import ImageMediaCreate
 from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS, DEBUG
 
@@ -69,7 +72,12 @@ class ImageView(GenericViewSet, ListModelMixin, CreateModelMixin):
         return self.list(request, pk)
 
     def post(self, request: Request, pk: int) -> Response:
-        return self.create(request, pk)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        file_validation = FileValidation(serializer.data, request)
+        file_validation.validate_all()
+        return Response(serializer.data, status=HTTP_201_CREATED)
 
 
 class ImageDetailView(GenericViewSet, RetrieveModelMixin):
@@ -91,13 +99,11 @@ class ImageDetailView(GenericViewSet, RetrieveModelMixin):
     def get_one(self, request: Request, pk: int, image_pk: int) -> Response:
         service = ImageMediaCreate()
         instance = self.get_object()
-        account_tier = service.get_account_tier_instance(pk)
-        thumbnail_sizes = service.get_thumbnail_sizes_list(account_tier)
-        original_link_access = service.check_access_to_original_image(account_tier)
-        sizes = service.create_sizes_schema(thumbnail_sizes, original_link_access, instance)
+        sizes = service.create_sizes_schema(pk, instance)
 
         if DEBUG:
             VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['media_sizes'] = sizes
+
         return self.retrieve(request, pk, image_pk)
 
 

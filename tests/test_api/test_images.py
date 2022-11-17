@@ -52,10 +52,10 @@ class TestImages(TestSetUp):
         self.assertEqual(response_post2.status_code, status.HTTP_201_CREATED)
 
         response_get2 = self.client.get(
-            reverse('api:image-media', kwargs={'pk': self.premiumaccount.id, 'image_pk': 2}))
+            reverse('api:image-single-image', kwargs={'pk': self.premiumaccount.id, 'image_pk': 2}))
         print(response_get2.data)
 
         self.client.force_login(self.basic_user)
         response_get1 = self.client.get(
-            reverse('api:image-media', kwargs={'pk': self.basicaccount.id, 'image_pk': 1}))
+            reverse('api:image-single-image', kwargs={'pk': self.basicaccount.id, 'image_pk': 1}))
         print(response_get1.data)

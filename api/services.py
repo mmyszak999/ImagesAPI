@@ -1,39 +1,28 @@
 from typing import OrderedDict
+from django.db import transaction
 
-from api.serializers import ImageInputSerializer, ImageMediaSerializer
-from api.entities.service_entities import ImageEntity
 from api.models import Account, Image, AccountTier
 from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
+from api.serializers import ImageInputSerializer
 
 """class ImageCreateService:
-    def image_create(self, dto: ImageEntity, account_instance: Account) -> Image:
-        return Image.objects.create(
-            caption=dto.caption,
-            image=dto.image,
-            account=account_instance
-        )
 
-    @classmethod
-    def build_dto_from_request_data(cls, request_data: OrderedDict) -> ImageEntity:
+    @transaction.atomic()
+    def image_create(self, account_instance: Account, request_data) -> Image:
         serializer = ImageInputSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        print(data['caption'])
 
-        return ImageEntity(
-            caption=data["caption"],
-            image=data["image"]
+        return Image.objects.create(
+            caption=data['caption'],
+            image_file=data['image_file'],
+            account=account_instance
         )
 
-    def image_create(self, request_data: OrderedDict, account_instance: Account) -> Image:
         serializer = ImageInputSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        return Image.objects.create(
-            caption=data["caption"],
-            image_file=data["image_file"],
-            account=account_instance
-        )
 """
 
 
@@ -44,15 +33,20 @@ class ImageMediaCreate:
         instance = Account.objects.get(id=account_pk)
         return instance.account_tier
 
-    def get_thumbnail_sizes_list(self, account_tier: AccountTier) -> list[int]:
+    def get_thumbnail_sizes_list(self, account_tier: AccountTier) -> list:
         return account_tier.thumbnail_sizes.split(",")
 
     def check_access_to_original_image(self, account_tier: AccountTier) -> bool:
         return account_tier.original_link
 
-    def create_sizes_schema(self, sizes_list: list[int],
-                            access_to_original: bool, image_instance: Image) -> list:
+    def create_sizes_schema(self, account_id: int, image_instance: Image) -> list:
+                
+        account_tier = self.get_account_tier_instance(account_id)
+        sizes_list = self.get_thumbnail_sizes_list(account_tier)
+        access_to_original = self.check_access_to_original_image(account_tier)
+
         actual_sizes = VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['media_sizes']
+
         if not actual_sizes:
             if AccountTier.original_link and access_to_original:
                 self.sizes.append(('full_size', 'url'), )
@@ -69,7 +63,7 @@ class ImageMediaCreate:
                     actual_sizes.remove(('full_size', 'url'))
 
             wrongs = []
-            for index, element in enumerate(actual_sizes):
+            for _, element in enumerate(actual_sizes):
                 if element == ('full_size', 'url'):
                     continue
                 if str(element[0]) not in sizes_list:

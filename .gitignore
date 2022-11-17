@@ -10,6 +10,7 @@ db.sqlite3
 # Media directories
 /images/__sized__
 /images/images
+.idea/*.xml
 
 
 

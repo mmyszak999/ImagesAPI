@@ -1,61 +1,205 @@
-import os
-
 from django.urls import reverse
 from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from tests.test_api.test_setup import TestSetUp
-from ImagesAPIproject.settings import BASE_DIR
 
 
 class TestImages(TestSetUp):
-    def test_create_image(self):
+    def test_basic_user_can_post_image(self):
         self.client.force_login(self.basic_user)
-        self.basicaccount = self.accounts[0]
-        self.premiumaccount = self.accounts[1]
-        self.image_file1 = open(
-            os.path.join(BASE_DIR, 'tests/test_images/basicuser.PNG'), "rb"
-        )
-        self.image_file2 = open(
-            os.path.join(BASE_DIR, 'tests/test_images/premiumuser.JPG'), "rb"
-        )
+        self.account = self.accounts[0]
 
-        self.image_data1 = {
-            'image_file': SimpleUploadedFile(
-                name=self.image_file1.name,
-                content=self.image_file1.read(),
-                content_type='image/png'
-            ),
-            'caption': 'basicuser_image',
-            'account': self.basicaccount.id
-        }
-
-        self.image_data2 = {
-            'image_file': SimpleUploadedFile(
-                name=self.image_file2.name,
-                content=self.image_file2.read(),
+        try: 
+            file = open(self.prepare_images["to_upload"], "rb")
+            self.image_file = SimpleUploadedFile(
+                name=file.name,
+                content=file.read(),
                 content_type='image/jpg'
-            ),
-            'caption': 'premiumuser_image',
-            'account': self.premiumaccount.id
-        }
+                )
+            self.image_data = {
+                'image_file': self.image_file,
+                'caption': 'basicuser_image',
+                'account': self.account.id
+            }
 
-        response_post1 = self.client.post(reverse('api:image-images', kwargs={'pk': self.basicaccount.id}),
-                                          data=self.image_data1)
-        print(response_post1.data)
-        self.assertEqual(response_post1.status_code, status.HTTP_201_CREATED)
+            response = self.client.post(reverse('api:image-images', kwargs={'pk': self.account.id}), data=self.image_data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.client.force_login(self.premium_user)
-        response_post2 = self.client.post(reverse('api:image-images', kwargs={'pk': self.premiumaccount.id}),
-                                          data=self.image_data2)
-        print(response_post2.data)
-        self.assertEqual(response_post2.status_code, status.HTTP_201_CREATED)
+        finally:
+            file.close()
+    
 
-        response_get2 = self.client.get(
-            reverse('api:image-single-image', kwargs={'pk': self.premiumaccount.id, 'image_pk': 2}))
-        print(response_get2.data)
-
+    def test_basic_user_can_list_images(self):
         self.client.force_login(self.basic_user)
-        response_get1 = self.client.get(
-            reverse('api:image-single-image', kwargs={'pk': self.basicaccount.id, 'image_pk': 1}))
-        print(response_get1.data)
+        self.account = self.accounts[0]
+        response = self.client.get(reverse('api:image-images', kwargs={'pk': self.account.id}))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    
+    def test_basic_user_can_get_thumbnails(self):
+        self.client.force_login(self.basic_user)
+        self.account = self.accounts[0]
+        
+        response = self.client.get(reverse('api:image-single-image', kwargs={
+            'pk': self.account.id, 'image_pk': self.images[0].id
+            }))
+
+        self.access_to_original = self.account.account_tier.original_link == True
+        self.thumbnails_amount = len(self.account.account_tier.thumbnail_sizes.split(","))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["image_file"]), self.thumbnails_amount + self.access_to_original)
+    
+
+    def test_premium_user_can_post_image(self):
+        self.client.force_login(self.premium_user)
+        self.account = self.accounts[1]
+
+        try: 
+            file = open(self.prepare_images["to_upload"], "rb")
+            self.image_file = SimpleUploadedFile(
+                name=file.name,
+                content=file.read(),
+                content_type='image/jpg'
+                )
+            self.image_data = {
+                'image_file': self.image_file,
+                'caption': 'basicuser_image',
+                'account': self.account.id
+            }
+
+            response = self.client.post(reverse('api:image-images', kwargs={'pk': self.account.id}), data=self.image_data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        finally:
+            file.close()
+    
+
+    def test_premium_user_can_list_images(self):
+        self.client.force_login(self.premium_user)
+        self.account = self.accounts[1]
+        response = self.client.get(reverse('api:image-images', kwargs={'pk': self.account.id}))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    
+    def test_premium_user_can_get_thumbnails(self):
+        self.client.force_login(self.premium_user)
+        self.account = self.accounts[1]
+        
+        response = self.client.get(reverse('api:image-single-image', kwargs={
+            'pk': self.account.id, 'image_pk': self.images[1].id
+            }))
+
+        self.access_to_original = self.account.account_tier.original_link == True
+        self.thumbnails_amount = len(self.account.account_tier.thumbnail_sizes.split(","))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["image_file"]), self.thumbnails_amount + self.access_to_original)
+    
+    def test_enterprise_user_can_post_image(self):
+        self.client.force_login(self.enterprise_user)
+        self.account = self.accounts[2]
+
+        try: 
+            file = open(self.prepare_images["to_upload"], "rb")
+            self.image_file = SimpleUploadedFile(
+                name=file.name,
+                content=file.read(),
+                content_type='image/jpg'
+                )
+            self.image_data = {
+                'image_file': self.image_file,
+                'caption': 'basicuser_image',
+                'account': self.account.id
+            }
+
+            response = self.client.post(reverse('api:image-images', kwargs={'pk': self.account.id}), data=self.image_data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        finally:
+            file.close()
+    
+
+    def test_enterprise_user_can_list_images(self):
+        self.client.force_login(self.enterprise_user)
+        self.account = self.accounts[2]
+
+        response = self.client.get(reverse('api:image-images', kwargs={'pk': self.account.id}))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    
+    def test_enterprise_user_can_get_thumbnails(self):
+        self.client.force_login(self.enterprise_user)
+        self.account = self.accounts[2]
+        
+        response = self.client.get(reverse('api:image-single-image', kwargs={
+            'pk': self.account.id, 'image_pk': self.images[2].id
+            }))
+
+        self.access_to_original = self.account.account_tier.original_link == True
+        self.thumbnails_amount = len(self.account.account_tier.thumbnail_sizes.split(","))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["image_file"]), self.thumbnails_amount + self.access_to_original)
+
+
+    def test_custom_user_can_post_image(self):
+        self.client.force_login(self.custom_user)
+        self.account = self.accounts[3]
+
+        try: 
+            file = open(self.prepare_images["to_upload"], "rb")
+            self.image_file = SimpleUploadedFile(
+                name=file.name,
+                content=file.read(),
+                content_type='image/jpg'
+                )
+            self.image_data = {
+                'image_file': self.image_file,
+                'caption': 'basicuser_image',
+                'account': self.account.id
+            }
+
+            response = self.client.post(reverse('api:image-images', kwargs={'pk': self.account.id}), data=self.image_data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        finally:
+            file.close()
+    
+
+    def test_custom_user_can_list_images(self):
+        self.client.force_login(self.custom_user)
+        self.account = self.accounts[3]
+
+        response = self.client.get(reverse('api:image-images', kwargs={'pk': self.account.id}))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    
+    def test_custom_user_can_get_thumbnails(self):
+        self.client.force_login(self.custom_user)
+        self.account = self.accounts[3]
+
+        response = self.client.get(reverse('api:image-single-image', kwargs={
+            'pk': self.account.id, 'image_pk': self.images[3].id
+            }))
+
+        self.access_to_original = self.account.account_tier.original_link == True
+        self.thumbnails_amount = len(self.account.account_tier.thumbnail_sizes.split(","))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["image_file"]), self.thumbnails_amount + self.access_to_original)
+    
+
+
+
+
+

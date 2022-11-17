@@ -4,7 +4,7 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, CreateMode
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.status import HTTP_201_CREATED
+from rest_framework.status import HTTP_201_CREATED, HTTP_404_NOT_FOUND
 
 
 from api.models import Image, Account
@@ -61,7 +61,7 @@ class ImageView(GenericViewSet, ListModelMixin, CreateModelMixin):
         user = self.request.user
         if user.is_staff or user.is_superuser or account.owner == user:
             return images
-        raise NotFound
+        raise NotFound(code=HTTP_404_NOT_FOUND)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -72,11 +72,11 @@ class ImageView(GenericViewSet, ListModelMixin, CreateModelMixin):
         return self.list(request, pk)
 
     def post(self, request: Request, pk: int) -> Response:
+        file_validation = FileValidation(request.data, request.user)
+        file_validation.validate_all()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        file_validation = FileValidation(serializer.data, request)
-        file_validation.validate_all()
         return Response(serializer.data, status=HTTP_201_CREATED)
 
 

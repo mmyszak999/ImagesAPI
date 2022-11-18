@@ -7,3 +7,8 @@ from django.core.files.uploadedfile import UploadedFile
 class ImageEntity:
     caption: str
     image_file: UploadedFile
+
+
+@dataclass(frozen=True)
+class ExpiringLinkEntity:
+    expires_in: int

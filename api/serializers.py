@@ -4,12 +4,22 @@ from rest_framework.serializers import (
     ImageField,
     ReadOnlyField,
     IntegerField,
-    CharField
+    CharField,
+    HyperlinkedRelatedField
 )
 from versatileimagefield.serializers import VersatileImageFieldSerializer   
-from versatileimagefield.fields import VersatileImageField
 
-from api.models import Image, Account, AccountTier, Thumbnail
+from api.models import Image, Account, ExpiringLinkToken
+
+
+class AccountOutputSerializer(ModelSerializer):
+    owner_name = ReadOnlyField(source='owner.username')
+    tier_name = ReadOnlyField(source='account_tier.tier_name')
+
+    class Meta:
+        model = Account
+        fields = ('id', 'owner', 'account_tier', 'owner_name', 'tier_name',)
+        read_only_fields = fields
 
 
 class ImageInputSerializer(Serializer):
@@ -22,7 +32,7 @@ class ImageOutputSerializer(ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('id', 'caption', 'account', 'width', 'height', 'image_name')
+        fields = ('id', 'caption', 'account', 'width', 'height', 'image_name',)
         read_only_fields = fields
 
 
@@ -33,14 +43,31 @@ class ImageMediaSerializer(ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('id', 'image_file')
+        fields = ('id', 'image_file',)
+        read_only_fields = fields
 
 
-class AccountOutputSerializer(ModelSerializer):
-    owner_name = ReadOnlyField(source='owner.username')
-    tier_name = ReadOnlyField(source='account_tier.tier_name')
+class ExpringLinkTokenInputSerializer(Serializer):
+    expires_in = IntegerField()
+
+
+class ExpiringLinkTokenOutputSerializer(ModelSerializer):
+    image_url = HyperlinkedRelatedField(
+        view_name='api:image-get-expiring-link',
+        lookup_field="image_pk",
+        read_only=True
+    )
 
     class Meta:
-        model = Account
-        fields = ('id', 'owner', 'account_tier', 'owner_name', 'tier_name',)
+        model = ExpiringLinkToken
+        fields = ("id", "image_url", "expires_in", "expiration_date")
         read_only_fields = fields
+
+
+class ExpiringLinkImageOutputSerializer(ModelSerializer):
+
+    class Meta:
+        model = Image
+        fields = ("image_file",)
+        read_only_fields = fields
+

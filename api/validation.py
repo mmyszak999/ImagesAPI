@@ -4,9 +4,12 @@ from typing import Any, OrderedDict
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from api.exceptions import IncorrectFileFormat, UnauthorizedAccountAccess
+from api.exceptions import (
+    IncorrectFileFormat, UnauthorizedAccountAccess,
+    NoExpiringLinkCreatePermission, IncorrectExpirationTimeEntered
+)
 from api.utils import allowed_formats
-from api.models import Account
+from api.models import Account, AccountTier
 
 
 class FileValidation:
@@ -33,3 +36,26 @@ class FileValidation:
     def validate_all(self):
         self.validate_file_format()
         self.validate_access(self.user.id, self.account_id)
+
+
+class ExpiringLinkTokenValidation:
+    def __init__(self, request_user: User, account_id: int, seconds: int) -> None:
+        self.request_user = request_user
+        self.account_id = account_id
+        self.seconds = seconds
+    
+    def validate_access_to_create_token(self, account_tier: AccountTier):
+        if not account_tier.expiring_links:
+            raise NoExpiringLinkCreatePermission("Your account tier does not allow you to create a link")
+        return
+    
+    def validate_allowed_time_of_expiration(self, account_tier: AccountTier):
+
+        if not (account_tier.min_expiring_time < int(self.seconds) < account_tier.max_expiring_time):
+            raise IncorrectExpirationTimeEntered("Entered expiration time is out of range")
+        return
+    
+    def validate_all(self):
+        account_tier = Account.objects.get(id=self.account_id).account_tier
+        self.validate_access_to_create_token(account_tier)
+        self.validate_allowed_time_of_expiration(account_tier)

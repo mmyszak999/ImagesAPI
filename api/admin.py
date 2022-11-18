@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import Image, Account, AccountTier, Thumbnail
+from api.models import Image, Account, AccountTier, ExpiringLinkToken
 
 
 class ImageAdmin(admin.ModelAdmin):
@@ -15,12 +15,12 @@ class AccountTierAdmin(admin.ModelAdmin):
     pass
 
 
-class ThumbnailAdmin(admin.ModelAdmin):
+class ExpiringLinkTokenAdmin(admin.ModelAdmin):
     pass
 
 
 admin.site.register(Image, ImageAdmin)
 admin.site.register(Account, AccountAdmin)
 admin.site.register(AccountTier, AccountTierAdmin)
-admin.site.register(Thumbnail, ThumbnailAdmin)
+admin.site.register(ExpiringLinkToken, ExpiringLinkTokenAdmin)
 

@@ -42,5 +42,7 @@ class Image(models.Model):
         return self.caption
 
 
-class Thumbnail(models.Model):
-    image = models.OneToOneField(Image, on_delete=models.CASCADE, default=None)
+class ExpiringLinkToken(models.Model):
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, default=None)
+    expiration_date = models.DateTimeField()
+    expires_in = models.IntegerField(default=0)

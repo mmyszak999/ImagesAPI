@@ -1,27 +1,28 @@
-import magic
-import imghdr
-from typing import OrderedDict
-from django.contrib.auth.models import User
+from datetime import timedelta
 
-from api.models import Account, Image, AccountTier
+from rest_framework.request import Request
+from django.utils import timezone
+
 from images_api_project.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
-from api.serializers import ImageInputSerializer
-from api.validation import FileValidation
-from api.entities.api_entities import ImageEntity
-from django.core.validators import validate_image_file_extension
+from api.models import Account, Image, AccountTier, ExpiringLinkToken
+from api.serializers import ImageInputSerializer, ExpringLinkTokenInputSerializer
+from api.validation import FileValidation, ExpiringLinkTokenValidation
+from api.entities.api_entities import ImageEntity, ExpiringLinkEntity
+from api.exceptions import ExpiredAccessToken
+
 
 class ImageCreateService:
-    def __init__(self, request, account_id) -> None:
+    def __init__(self, request: Request, account_id: int) -> None:
         self.request = request
         self.account_id = account_id
         
     def validate_file(self):
         file_validation = FileValidation(self.request.data,
-         self.request.user, self.account_id, self.request.FILES['image_file']
+        self.request.user, self.account_id, self.request.FILES['image_file']
         )
         file_validation.validate_all()
 
-    def build_task_dto_from_validated_data(self) -> ImageEntity:
+    def build_image_dto_from_validated_data(self) -> ImageEntity:
         self.validate_file()
         serializer = ImageInputSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
@@ -33,8 +34,7 @@ class ImageCreateService:
         )
 
     def image_create(self) -> Image:
-        
-        data = self.build_task_dto_from_validated_data()
+        data = self.build_image_dto_from_validated_data()
         return Image.objects.create(
             caption=data.caption,
             image_file=data.image_file,
@@ -42,7 +42,7 @@ class ImageCreateService:
         )
 
 
-class ImageMediaCreate:
+class ImageMediaCreateService:
     def __init__(self, sizes: list = []) -> None:
         self.sizes = sizes
 
@@ -91,3 +91,54 @@ class ImageMediaCreate:
                 actual_sizes.append((f'{str(size)}', f'thumbnail__{image_instance.width}x{size}',))
 
             return actual_sizes
+
+
+class ExpringLinkCreateService:
+    def __init__(self, request: Request, image_id: int, account_id: int) -> None:
+        self.request = request
+        self.image_id = image_id
+        self.account_id = account_id
+
+    def validate_access_to_create_token(self):
+        expiring_link_token_validation = ExpiringLinkTokenValidation(
+            self.request.user, self.account_id, self.request.data["expires_in"]
+            )
+        expiring_link_token_validation.validate_all()
+
+    def build_task_dto_from_validated_data(self) -> ExpiringLinkEntity:
+        self.validate_access_to_create_token()
+        serializer = ExpringLinkTokenInputSerializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        return ExpiringLinkEntity(
+            expires_in=data["expires_in"],
+        )
+
+    def expiring_link_create(self) -> ExpiringLinkToken:
+        link_entity = self.build_task_dto_from_validated_data()
+        print(link_entity)
+        expiration_date = timezone.now() + timedelta(seconds=link_entity.expires_in)
+        image = Image.objects.get(id=self.image_id)
+
+        return ExpiringLinkToken.objects.create(
+            expiration_date=expiration_date,
+            image=image,
+            expires_in=link_entity.expires_in
+        )
+
+
+class GetTokenImageService:
+    def __init__(self, token_id: int) -> None:
+        self.token_id = token_id
+
+    def validate_token(self, access_token: ExpiringLinkToken):
+        if access_token.expiration_date < timezone.now():
+            access_token.delete()
+            raise ExpiredAccessToken("Token has expired")
+        return
+    
+    def get_token_image(self) -> Image:
+        access_token = ExpiringLinkToken.objects.get(id=self.token_id)
+        self.validate_token(access_token)
+        return access_token.image
+    

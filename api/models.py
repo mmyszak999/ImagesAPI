@@ -18,7 +18,7 @@ class AccountTier(models.Model):
 
 class Account(models.Model):
     owner = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    account_tier = models.OneToOneField(AccountTier, on_delete=models.CASCADE)
+    account_tier = models.ForeignKey(AccountTier, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.owner.username

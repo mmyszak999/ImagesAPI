@@ -44,22 +44,3 @@ class AccountOutputSerializer(ModelSerializer):
         model = Account
         fields = ('id', 'owner', 'account_tier', 'owner_name', 'tier_name',)
         read_only_fields = fields
-
-
-
-"""class AccountTierInputSerializer(Serializer):
-    tier_name = CharField()
-    thumbnail_sizes = CharField()
-    original_link = BooleanField()
-    expiring_links = BooleanField()
-    min_expiring_time = IntegerField()  
-    max_expiring_time = IntegerField()
-
-
-class AccountTierOutputSerializer(ModelSerializer):
-    class Meta:
-        model = AccountTier
-        fields = ('id', 'tier_name',
-                  'thumbnail_sizes', 'original_link', 'expiring_links',
-                  'min_expiring_time', 'max_expiring_time',)
-        read_only_fields = fields"""

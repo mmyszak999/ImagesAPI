@@ -2,29 +2,44 @@ from typing import OrderedDict
 from django.contrib.auth.models import User
 
 from api.models import Account, Image, AccountTier
-from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
+from images_api_project.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
 from api.serializers import ImageInputSerializer
 from api.validation import FileValidation
+from api.entities.api_entities import ImageEntity
 
 class ImageCreateService:
-
-    def image_create(self, request_data: OrderedDict, request_user: User, account_id: int) -> Image:
-        file_validation = FileValidation(request_data, request_user, account_id)
+    def __init__(self, request, account_id) -> None:
+        self.request = request
+        self.account_id = account_id
+        
+    def validate_file(self):
+        file_validation = FileValidation(self.request.data, self.request.user, self.account_id)
         file_validation.validate_all()
-        serializer = ImageInputSerializer(data=request_data)
+
+    def build_task_dto_from_validated_data(self) -> ImageEntity:
+        self.validate_file()
+        serializer = ImageInputSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        return Image.objects.create(
+        return ImageEntity(
             caption=data['caption'],
             image_file=data['image_file'],
-            account=Account.objects.get(id=account_id)
+        )
+
+    def image_create(self) -> Image:
+        
+        data = self.build_task_dto_from_validated_data()
+        return Image.objects.create(
+            caption=data.caption,
+            image_file=data.image_file,
+            account=Account.objects.get(id=self.account_id)
         )
 
 
-
 class ImageMediaCreate:
-    sizes = []
+    def __init__(self, sizes: list = []) -> None:
+        self.sizes = sizes
 
     def get_account_tier_instance(self, account_pk: int) -> AccountTier:
         instance = Account.objects.get(id=account_pk)

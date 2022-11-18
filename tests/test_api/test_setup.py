@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from api.models import AccountTier, Account, Image
-from ImagesAPIproject.settings import BASE_DIR
+from images_api_project.settings import BASE_DIR
 
 
 class TestSetUp(APITestCase):
@@ -17,7 +17,7 @@ class TestSetUp(APITestCase):
         cls.premium_user = User.objects.create(username='premium_user')
         cls.enterprise_user = User.objects.create(username='enterprise_user')
         cls.custom_user = User.objects.create(username='custom_user')
-        cls.super_user = User.objects.create_superuser(username="superuser")
+        cls.super_user = User.objects.create_superuser(username="superuser", email=None, password=None)
 
         cls.account_tiers = AccountTier.objects.bulk_create([
             AccountTier(
@@ -51,6 +51,8 @@ class TestSetUp(APITestCase):
                     account_tier=cls.account_tiers[2]),
             Account(owner=cls.custom_user,
                     account_tier=cls.account_tiers[3]),
+            Account(owner=cls.super_user,
+                    account_tier=cls.account_tiers[2])
         ])
 
         cls.prepare_images = {

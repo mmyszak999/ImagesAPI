@@ -20,14 +20,13 @@ class FileValidation:
             raise IncorrectFileFormat(f"This type of image format {format} is not allowed!")
         return
     
-    def validate_access(self, request_user_id: int, account_id: int):
+    def validate_access(self, account_id: int):
         account_owner = Account.objects.get(id=account_id).owner
         
-        print(str(request_user_id) == account_owner.id, type(request_user_id), type(account_owner.id))
-        if not (request_user_id == account_owner.id or self.user.is_superuser):
+        if not (self.user.id == account_owner.id or self.user.is_superuser):
             raise UnauthorizedAccountAccess("You are not the owner of the account!")
         return
     
     def validate_all(self):
         self.validate_file_format(self.data["image_file"].name)
-        self.validate_access(self.user.id, self.account_id)
+        self.validate_access(self.account_id)

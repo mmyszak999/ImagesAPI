@@ -4,6 +4,7 @@ from rest_framework.serializers import (
     ImageField,
     ReadOnlyField,
     IntegerField,
+    CharField
 )
 from versatileimagefield.serializers import VersatileImageFieldSerializer
 from versatileimagefield.fields import VersatileImageField
@@ -11,10 +12,9 @@ from versatileimagefield.fields import VersatileImageField
 from api.models import Image, Account, AccountTier, Thumbnail
 
 
-class ImageInputSerializer(ModelSerializer):
-    class Meta:
-        model = Image
-        fields = ('id', 'image_file', 'caption', 'account')
+class ImageInputSerializer(Serializer):
+    image_file = ImageField()
+    caption = CharField()
 
 
 class ImageOutputSerializer(ModelSerializer):

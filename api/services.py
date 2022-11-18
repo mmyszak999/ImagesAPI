@@ -1,29 +1,26 @@
 from typing import OrderedDict
-from django.db import transaction
+from django.contrib.auth.models import User
 
 from api.models import Account, Image, AccountTier
 from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
 from api.serializers import ImageInputSerializer
+from api.validation import FileValidation
 
-"""class ImageCreateService:
+class ImageCreateService:
 
-    @transaction.atomic()
-    def image_create(self, account_instance: Account, request_data) -> Image:
+    def image_create(self, request_data: OrderedDict, request_user: User, account_id: int) -> Image:
+        file_validation = FileValidation(request_data, request_user, account_id)
+        file_validation.validate_all()
         serializer = ImageInputSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        print(data['caption'])
 
         return Image.objects.create(
             caption=data['caption'],
             image_file=data['image_file'],
-            account=account_instance
+            account=Account.objects.get(id=account_id)
         )
 
-        serializer = ImageInputSerializer(data=request_data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-"""
 
 
 class ImageMediaCreate:

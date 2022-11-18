@@ -12,7 +12,7 @@ from api.serializers import (
     ImageInputSerializer, ImageOutputSerializer, AccountOutputSerializer, ImageMediaSerializer
 )
 from api.validation import FileValidation
-from api.services import ImageMediaCreate
+from api.services import ImageMediaCreate, ImageCreateService
 from ImagesAPIproject.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS, DEBUG
 
 
@@ -51,7 +51,7 @@ class AccountDetailView(GenericViewSet, RetrieveModelMixin):
         return self.retrieve(request, pk)
 
 
-class ImageView(GenericViewSet, ListModelMixin, CreateModelMixin):
+class ImageView(GenericViewSet, ListModelMixin):
     queryset = ImageInputSerializer
     model = Image
 
@@ -71,13 +71,11 @@ class ImageView(GenericViewSet, ListModelMixin, CreateModelMixin):
     def get(self, request: Request, pk: int) -> Response:
         return self.list(request, pk)
 
-    def post(self, request: Request, pk: int) -> Response:
-        file_validation = FileValidation(request.data, request.user)
-        file_validation.validate_all()
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=HTTP_201_CREATED)
+    def create(self, request: Request, pk: int) -> Response:
+        image_create_service = ImageCreateService()
+        image_instance = image_create_service.image_create(request.data, request.user, pk)
+
+        return Response(self.get_serializer(image_instance).data, status=HTTP_201_CREATED)
 
 
 class ImageDetailView(GenericViewSet, RetrieveModelMixin):

@@ -6,7 +6,7 @@ from rest_framework.serializers import (
     IntegerField,
     CharField
 )
-from versatileimagefield.serializers import VersatileImageFieldSerializer
+from versatileimagefield.serializers import VersatileImageFieldSerializer   
 from versatileimagefield.fields import VersatileImageField
 
 from api.models import Image, Account, AccountTier, Thumbnail

@@ -1,3 +1,5 @@
+import magic
+import imghdr
 from typing import OrderedDict
 from django.contrib.auth.models import User
 
@@ -6,6 +8,7 @@ from images_api_project.settings import VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
 from api.serializers import ImageInputSerializer
 from api.validation import FileValidation
 from api.entities.api_entities import ImageEntity
+from django.core.validators import validate_image_file_extension
 
 class ImageCreateService:
     def __init__(self, request, account_id) -> None:
@@ -13,7 +16,9 @@ class ImageCreateService:
         self.account_id = account_id
         
     def validate_file(self):
-        file_validation = FileValidation(self.request.data, self.request.user, self.account_id)
+        file_validation = FileValidation(self.request.data,
+         self.request.user, self.account_id, self.request.FILES['image_file']
+        )
         file_validation.validate_all()
 
     def build_task_dto_from_validated_data(self) -> ImageEntity:

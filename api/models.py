@@ -9,7 +9,7 @@ class AccountTier(models.Model):
                                        null=True, default=None)
     original_link = models.BooleanField(default=False)
     expiring_links = models.BooleanField(default=False)
-    min_expiring_time = models.PositiveIntegerField(default=0)
+    min_expiring_time = models.PositiveIntegerField(default=0)  
     max_expiring_time = models.PositiveIntegerField(default=0)
 
     def __str__(self):

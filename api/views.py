@@ -50,12 +50,12 @@ class ImageView(ListAPIView, CreateAPIView, GenericAPIView):
     model = Image
 
     def get_queryset(self):
-        images = Image.objects.filter(account=self.kwargs["pk"]).select_related("account")
-        account = Account.objects.get(pk=self.kwargs['pk'])
-        user = self.request.user
-        if user.is_staff or user.is_superuser or account.owner == user:
-            return get_list_or_404(images)
-        return get_list_or_404(self.model, account__owner=self.request.user)
+        account_id = self.kwargs['pk']
+        account_owner = Account.objects.get(id=account_id).owner
+        image = Image.objects.filter(account=account_id).select_related('account')
+        if self.request.user.is_superuser:
+            return get_list_or_404(image, pk=pk)
+        return get_list_or_404(Image, pk=pk, account__owner=account_owner)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':

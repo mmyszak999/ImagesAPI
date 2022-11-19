@@ -19,7 +19,7 @@ class TestSetUp(APITestCase):
         cls.custom_user = User.objects.create(username='custom_user')
         cls.super_user = User.objects.create_superuser(username="superuser", email=None, password=None)
 
-        cls.account_tiers = AccountTier.objects.bulk_create([
+        cls.account_tiers = AccountTier.objects.bulk_create([   
             AccountTier(
                 tier_name="basic", thumbnail_sizes="200",
                 original_link=False, expiring_links=False,

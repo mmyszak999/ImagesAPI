@@ -13,24 +13,26 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 from pathlib import Path
 
-from decouple import config
+from decouple import Config, RepositoryEnv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+DOTENV_FILE = BASE_DIR / "config/.env"
+env_config = Config(RepositoryEnv(DOTENV_FILE))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = env_config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast=bool, default=True)
+DEBUG = env_config('DEBUG', cast=bool, default=True)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS')
+
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 
 
 # Application definition
@@ -92,12 +94,12 @@ WSGI_APPLICATION = 'images_api_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': config('POSTGRES_NAME'),
-        'USER': config('POSTGRES_USER'),
-        'PASSWORD': config('POSTGRES_PASSWORD'),
-        'HOST': config('POSTGRES_HOST'),
-        'PORT': config('POSTGRES_PORT'),
-        'DISABLE_SERVER_SIDE_CURSORS': config('DISABLE_SERVER_SIDE_CURSORS', cast=bool, default=True)
+        'NAME': env_config('POSTGRES_NAME'),
+        'USER': env_config('POSTGRES_USER'),
+        'PASSWORD': env_config('POSTGRES_PASSWORD'),
+        'HOST': env_config('POSTGRES_HOST'),
+        'PORT': env_config('POSTGRES_PORT'),
+        'DISABLE_SERVER_SIDE_CURSORS': env_config('DISABLE_SERVER_SIDE_CURSORS', cast=bool, default=True)
     }
 }
 

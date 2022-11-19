@@ -140,4 +140,3 @@ class GetTokenImageService:
         access_token = ExpiringLinkToken.objects.get(id=self.token_id)
         self.validate_token(access_token)
         return access_token.image
-    

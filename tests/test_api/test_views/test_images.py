@@ -112,9 +112,10 @@ class TestImageViews(TestSetUp):
     
     def test_non_admin_user_cannot_get_images_of_other_user(self):
         self.client.force_login(self.basic_user)
-        self.account = self.accounts[1]   
+        self.account = self.accounts[1]
 
         response = self.client.get(reverse('api:image-images', kwargs={'pk': self.account.id}))
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 

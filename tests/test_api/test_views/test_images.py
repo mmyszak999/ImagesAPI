@@ -115,7 +115,6 @@ class TestImageViews(TestSetUp):
         self.account = self.accounts[1]
 
         response = self.client.get(reverse('api:image-images', kwargs={'pk': self.account.id}))
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 

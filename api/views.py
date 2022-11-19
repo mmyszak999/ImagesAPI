@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.status import HTTP_201_CREATED, HTTP_404_NOT_FOUND, HTTP_200_OK
 
+from api.exceptions import UnauthorizedAccountAccess
 from api.models import Image, Account, ExpiringLinkToken
 from api.serializers import (
     ImageInputSerializer, ImageOutputSerializer, AccountOutputSerializer,
@@ -50,12 +51,25 @@ class ImageView(ListAPIView, CreateAPIView, GenericAPIView):
     model = Image
 
     def get_queryset(self):
-        account_id = self.kwargs['pk']
-        account_owner = Account.objects.get(id=account_id).owner
-        image = Image.objects.filter(account=account_id).select_related('account')
-        if self.request.user.is_superuser:
-            return get_list_or_404(image, pk=pk)
-        return get_list_or_404(Image, pk=pk, account__owner=account_owner)
+        pk = self.kwargs['pk']
+        account = Account.objects.get(pk=pk)
+        user = self.request.user
+        images = Image.objects.filter(account=account)
+        
+        if (
+                user.is_staff or
+                user.is_superuser or
+                user == account.owner
+        ):
+            return get_list_or_404(images)
+        raise NotFound
+        """account_pk = self.kwargs["pk"]
+        images = Image.objects.filter(account=account_pk).select_related('account')
+        account = Account.objects.get(id=account_pk)
+        user = self.request.user
+        if user.is_superuser or user.is_staff or account.owner == user:
+            return get_list_or_404(images)
+        return get_list_or_404(Image, account__owner=account.owner)"""
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -73,12 +87,13 @@ class ImageDetailView(RetrieveAPIView, GenericAPIView):
     queryset = Image.objects.all()
 
     def get_object(self):
-        pk = self.kwargs['image_pk']
+        image_id = self.kwargs['image_pk']
         account_id = self.kwargs['pk']
-        image = Image.objects.filter(account=account_id).select_related('account')
-        if self.request.user.is_superuser:
-            return get_object_or_404(image, pk=pk)
-        return get_object_or_404(Image, pk=pk, account__owner=self.request.user)
+        account = Account.objects.get(id=account_id)
+        image = Image.objects.filter(id=image_id).select_related('account')
+        if self.request.user.is_superuser or account.owner == self.request.user:
+            return get_object_or_404(image)
+        raise NotFound
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -101,11 +116,11 @@ class ExpiringLinkView(CreateAPIView, ListAPIView, GenericAPIView):
 
     def get_queryset(self):
         tokens = ExpiringLinkToken.objects.filter(image=self.kwargs["image_pk"]).select_related("image")
-        account = Account.objects.get(pk=self.kwargs['pk'])
         user = self.request.user
-        if user.is_staff or user.is_superuser or account.owner == user:
+        account = Account.objects.get(pk=self.kwargs["pk"])
+        if user.is_staff or user.is_superuser or (user == account.owner and account.account_tier.expiring_links):
             return get_list_or_404(tokens)
-        return get_list_or_404(self.model, account__owner=self.request.user)
+        raise NotFound
     
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -125,12 +140,17 @@ class ExpiringLinkDetailView(RetrieveAPIView, GenericAPIView):
 
     def get_object(self):
         token_pk = self.kwargs['token_pk']
-        account_id = self.kwargs['pk']
-        account_owner = Account.objects.get(id=account_id).owner
-        token = ExpiringLinkToken.objects.filter(token=token_pk).select_related('image')
-        if self.request.user.is_superuser:
-            return get_object_or_404(token, pk=token_pk)
-        return get_object_or_404(Image, pk=token_pk, account__owner=self.request.user)
+        image_pk = self.kwargs['image_pk']
+        token = ExpiringLinkToken.objects.filter(id=token_pk).select_related('image')
+        image = Image.objects.get(id=image_pk)
+        user = self.request.user
+        print(user, image.account.owner, "WW")
+        if self.request.user.is_superuser or (
+            image.account.account_tier.expiring_links and image.account.owner == user 
+            and image.account.id == self.kwargs["pk"] and image.id == image_pk
+            ):
+            return get_object_or_404(token)
+        raise NotFound
     
     def get_serializer_class(self):
         return ExpiringLinkImageOutputSerializer

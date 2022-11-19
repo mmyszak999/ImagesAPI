@@ -1,16 +1,17 @@
 db-name=postgres
+fixture-files = fixtures/fixtures.json
 
 build:
 		docker-compose build
 
-up:
-		docker-compose up
+up:		
+		docker-compose up	
 
-fixtures:
-		docker-compose exec app_backend bash -c "python3 manage.py loaddata fixtures/fixtures.json"
+load-fixtures:
+		docker-compose exec app_backend bash -c "python3 manage.py loaddata $(fixture-files)"
 
 migrations:
-		docker-compose exec app_backend bash -c "python3 manage.py makemigrations && python3 manage.py migrate"
+		docker-compose exec app_backend bash -c "python3 manage.py makemigrations api && python3 manage.py migrate"
 
 superuser:
 		docker-compose exec app_backend bash -c "python3 manage.py createsuperuser"

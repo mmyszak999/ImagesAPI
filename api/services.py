@@ -116,7 +116,6 @@ class ExpringLinkCreateService:
 
     def expiring_link_create(self) -> ExpiringLinkToken:
         link_entity = self.build_task_dto_from_validated_data()
-        print(link_entity)
         expiration_date = timezone.now() + timedelta(seconds=link_entity.expires_in)
         image = Image.objects.get(id=self.image_id)
 

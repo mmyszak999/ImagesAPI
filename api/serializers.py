@@ -70,4 +70,3 @@ class ExpiringLinkImageOutputSerializer(ModelSerializer):
         model = Image
         fields = ("image_file",)
         read_only_fields = fields
-

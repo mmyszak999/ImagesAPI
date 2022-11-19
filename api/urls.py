@@ -13,9 +13,9 @@ urlpatterns = [
          name='image-images'),
      path('accounts/<int:pk>/images/<int:image_pk>/', views.ImageDetailView.as_view(),
          name='image-single-image'),
-     path('accounts/<int:pk>/images/<int:image_pk>/create_expiring_link/', views.ExpiringLinkView.as_view(),
+     path('accounts/<int:pk>/images/<int:image_pk>/expiring_link/', views.ExpiringLinkView.as_view(),
          name='image-create-expiring-link'),
-     path('accounts/<int:pk>/images/<int:image_pk>/create_expiring_link/<int:token_pk>/', views.ExpiringLinkDetailView.as_view(),
+     path('accounts/<int:pk>/images/<int:image_pk>/expiring_link/<int:token_pk>/', views.ExpiringLinkDetailView.as_view(),
          name='image-get-expiring-link')
 ]
 

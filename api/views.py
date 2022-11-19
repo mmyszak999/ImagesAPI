@@ -140,4 +140,3 @@ class ExpiringLinkDetailView(RetrieveAPIView, GenericAPIView):
         image = get_image_token_service.get_token_image()
 
         return Response(self.get_serializer(image).data,status=HTTP_200_OK)
-

@@ -21,9 +21,3 @@ test:
 
 backend-bash:
 		docker-compose exec app_backend bash
-
-reset-db:
-		docker-compose stop app_backend
-		docker-compose exec db bash -c "runuser postgres -c 'dropdb $(db-name); createdb $(db-name)'"
-		docker-compose start app_backend
-		make migrations

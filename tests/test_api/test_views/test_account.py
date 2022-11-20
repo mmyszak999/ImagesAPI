@@ -1,6 +1,5 @@
 from django.urls import reverse
 from rest_framework import status
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from tests.test_api.test_setup import TestSetUp
 

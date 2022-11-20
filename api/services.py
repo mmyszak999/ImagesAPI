@@ -8,7 +8,7 @@ from api.models import Account, Image, AccountTier, ExpiringLinkToken
 from api.serializers import ImageInputSerializer, ExpringLinkTokenInputSerializer
 from api.validation import FileValidation, ExpiringLinkTokenValidation
 from api.entities.api_entities import ImageEntity, ExpiringLinkEntity
-from api.exceptions import ExpiredAccessToken
+from api.exceptions import ExpiredTokenAccess
 
 
 class ImageCreateService:
@@ -43,8 +43,11 @@ class ImageCreateService:
 
 
 class ImageMediaCreateService:
-    def __init__(self, sizes: list = []) -> None:
+    def __init__(self, sizes=None) -> None:
+        if sizes is None:
+            sizes = []
         self.sizes = sizes
+
 
     def get_account_tier_instance(self, account_pk: int) -> AccountTier:
         instance = Account.objects.get(id=account_pk)
@@ -89,8 +92,9 @@ class ImageMediaCreateService:
                 actual_sizes.remove(element)
             for size in sizes_list:
                 actual_sizes.append((f'{str(size)}', f'thumbnail__{image_instance.width}x{size}',))
+            self.sizes = actual_sizes
 
-            return actual_sizes
+            return self.sizes
 
 
 class ExpringLinkCreateService:
@@ -107,7 +111,6 @@ class ExpringLinkCreateService:
 
     def build_task_dto_from_validated_data(self) -> ExpiringLinkEntity:
         self.validate_access_to_create_token()
-        print(self.validate_access_to_create_token())
         serializer = ExpringLinkTokenInputSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -134,7 +137,7 @@ class GetTokenImageService:
     def validate_token(self, access_token: ExpiringLinkToken):
         if access_token.expiration_date < timezone.now():
             access_token.delete()
-            raise ExpiredAccessToken("Token has expired")
+            raise ExpiredTokenAccess("Token has expired")
         return
     
     def get_token_image(self) -> Image:

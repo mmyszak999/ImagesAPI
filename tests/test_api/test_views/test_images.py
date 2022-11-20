@@ -3,18 +3,19 @@ from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from tests.test_api.test_setup import TestSetUp
+from api.exceptions import IncorrectFileFormat
+
 
 class TestImageViews(TestSetUp):
     def test_basic_user_can_post_image(self):
         self.client.force_login(self.basic_user)
         self.account = self.accounts[0]
 
-        try: 
-            file = open(self.prepare_images["to_upload"], "rb")
+        with open(self.prepare_images["to_upload"], "rb") as file:
+
             self.image_file = SimpleUploadedFile(
                 name=file.name,
                 content=file.read(),
-                content_type='image/jpg'
                 )
             self.image_data = {
                 'image_file': self.image_file,
@@ -24,21 +25,15 @@ class TestImageViews(TestSetUp):
 
             response = self.client.post(reverse('api:image-images', kwargs={'pk': self.account.id}), data=self.image_data)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        finally:
-            file.close()
     
-
     def test_custom_user_can_post_image(self):
         self.client.force_login(self.custom_user)
         self.account = self.accounts[3]
 
-        try: 
-            file = open(self.prepare_images["to_upload"], "rb")
+        with open(self.prepare_images["to_upload"], "rb") as file:
             self.image_file = SimpleUploadedFile(
                 name=file.name,
                 content=file.read(),
-                content_type='image/jpg'
                 )
             self.image_data = {
                 'image_file': self.image_file,
@@ -48,10 +43,26 @@ class TestImageViews(TestSetUp):
 
             response = self.client.post(reverse('api:image-images', kwargs={'pk': self.account.id}), data=self.image_data)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
 
-        finally:
-            file.close()
+    def test_user_cannot_post_image_with_wrong_format(self):
+        self.client.force_login(self.premium_user)
+        self.account = self.accounts[1]
 
+        with open(self.prepare_images["wrong_format"], "rb") as file:
+            self.image_file = SimpleUploadedFile(
+                name=file.name,
+                content=file.read(),
+                )
+            self.image_data = {
+                'image_file': self.image_file,
+                'caption': 'basicuser_image',
+                'account': self.account.id
+            }
+
+            with self.assertRaises(expected_exception=IncorrectFileFormat):
+                self.client.post(reverse('api:image-images', kwargs={'pk': self.account.id}), data=self.image_data)
+            
 
     def test_premium_user_can_list_their_images(self):
         self.client.force_login(self.premium_user)
@@ -144,3 +155,6 @@ class TestImageViews(TestSetUp):
         self.thumbnails_amount = len(self.account.account_tier.thumbnail_sizes.split(","))
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    
+    

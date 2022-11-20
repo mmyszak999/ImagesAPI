@@ -1,5 +1,5 @@
 import imghdr
-from typing import Any, OrderedDict
+from typing import OrderedDict
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -50,7 +50,8 @@ class ExpiringLinkTokenValidation:
         image = Image.objects.get(pk=self.image_id)
         if not (account_tier.expiring_links and self.request_user == account.owner and account == image.account):
             raise NoExpiringLinkCreatePermission(
-                "Your account tier does not allow you to create a link or you created a link to the wrong file")
+                "Your account tier does not allow you to create a link or you created a link to the wrong file"
+                )
         return
     
     def validate_allowed_time_of_expiration(self, account_tier: AccountTier):

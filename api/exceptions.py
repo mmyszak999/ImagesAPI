@@ -6,7 +6,7 @@ class UnauthorizedAccountAccess(Exception):
     pass
 
 
-class ExpiredAccessToken(Exception):
+class ExpiredTokenAccess(Exception):
     pass
 
 

@@ -1,11 +1,13 @@
-from random import randint
 import os
+from datetime import timedelta
 
+from django.utils import timezone
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test.client import RequestFactory
 
-from api.models import AccountTier, Account, Image
+from api.models import AccountTier, Account, Image, ExpiringLinkToken
 from images_api_project.settings import BASE_DIR
 
 
@@ -56,12 +58,13 @@ class TestSetUp(APITestCase):
         ])
 
         cls.prepare_images = {
-            'basic':(open(os.path.join(BASE_DIR, 'tests/test_images/basicuser.PNG'), "rb")),
-            "premium": (open(os.path.join(BASE_DIR, 'tests/test_images/premiumuser.JPG'), "rb")),
-            "enterprise": (open(os.path.join(BASE_DIR, 'tests/test_images/enterpriseuser.JPG'), "rb")),
-            "custom": (open(os.path.join(BASE_DIR, 'tests/test_images/customuser.PNG'), "rb")),
+            'basic': open(os.path.join(BASE_DIR, 'tests/test_images/basicuser.PNG'), "rb"),
+            "premium": open(os.path.join(BASE_DIR, 'tests/test_images/premiumuser.JPG'), "rb"),
+            "enterprise": open(os.path.join(BASE_DIR, 'tests/test_images/enterpriseuser.JPG'), "rb"),
+            "enterprise2": open(os.path.join(BASE_DIR, 'tests/test_images/enterpriseuser2.PNG'), "rb"),
+            "custom": open(os.path.join(BASE_DIR, 'tests/test_images/customuser.PNG'), "rb"),
             "to_upload": os.path.join(BASE_DIR, 'tests/test_images/imagetoupload.JPG'),
-            "wrong_format": (open(os.path.join(BASE_DIR, 'tests/test_images/wrongimageformat.GIF'), "rb")),
+            "wrong_format": os.path.join(BASE_DIR, 'tests/test_images/wrongimageformat.GIF')
         }
 
         cls.images = Image.objects.bulk_create([
@@ -97,9 +100,33 @@ class TestSetUp(APITestCase):
             ),
                 caption="customuser_image",
                 account=cls.accounts[3]
-            ),  
+            ),
+            Image(image_file=SimpleUploadedFile(
+                name=cls.prepare_images["enterprise2"].name,
+                content=cls.prepare_images["enterprise2"].read(),
+                content_type='image/png'
+            ),
+                caption="enterpriseuser2_image",
+                account=cls.accounts[2]
+            ), 
         ])
+
+        for image in cls.images:
+            image.image_file.close()
+
+        cls.expiring_link_tokens = ExpiringLinkToken.objects.bulk_create([
+            ExpiringLinkToken(
+                image=cls.images[2],
+                expiration_date = timezone.now() + timedelta(seconds=3000),
+                expires_in = 3000
+            ),
+            ExpiringLinkToken(
+                image=cls.images[2],
+                expiration_date = timezone.now() - timedelta(seconds=30000),
+                expires_in = 30000
+            )
+        ])
+
 
     def setUp(self) -> None:
         self.client.force_login(self.super_user)
-

@@ -3,9 +3,8 @@ from rest_framework.exceptions import NotFound
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView, CreateAPIView
-from rest_framework.status import HTTP_201_CREATED, HTTP_404_NOT_FOUND, HTTP_200_OK
+from rest_framework.status import HTTP_201_CREATED,  HTTP_200_OK
 
-from api.exceptions import UnauthorizedAccountAccess
 from api.models import Image, Account, ExpiringLinkToken
 from api.serializers import (
     ImageInputSerializer, ImageOutputSerializer, AccountOutputSerializer,
@@ -130,7 +129,6 @@ class ExpiringLinkView(CreateAPIView, ListAPIView, GenericAPIView):
         return Response(self.get_serializer(token_instance).data, status=HTTP_201_CREATED)
 
     
-
 class ExpiringLinkDetailView(RetrieveAPIView, GenericAPIView):
     model = ExpiringLinkToken
 
@@ -139,7 +137,6 @@ class ExpiringLinkDetailView(RetrieveAPIView, GenericAPIView):
         image = token.image
         account = image.account
         user = self.request.user
-        print(user.id, account.id, account.owner.id, self.kwargs["pk"], user, account)
         if self.request.user.is_superuser or (
             account.account_tier.expiring_links and
             user.id == account.owner.id and

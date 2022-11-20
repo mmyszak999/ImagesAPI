@@ -25,9 +25,11 @@ https://chocolatey.org/
 
 1. Clone repository:
 `$ git clone https://github.com/mmyszak999/ImagesAPI/`
-2. In the root directory type:
+2. In the 'config' directory create '.env' file
+3. Set the values of environmental variables (you can copy the content from '.env.template' file)
+4. In the root directory type:
 `$ make build`
-3. In order to run project type: 
+5. In order to run project type: 
 `$ make up`
 
 

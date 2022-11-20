@@ -101,12 +101,13 @@ class ExpringLinkCreateService:
 
     def validate_access_to_create_token(self):
         expiring_link_token_validation = ExpiringLinkTokenValidation(
-            self.request.user, self.account_id, self.request.data["expires_in"]
+            self.request.user, self.account_id, self.request.data["expires_in"], self.image_id
             )
         expiring_link_token_validation.validate_all()
 
     def build_task_dto_from_validated_data(self) -> ExpiringLinkEntity:
         self.validate_access_to_create_token()
+        print(self.validate_access_to_create_token())
         serializer = ExpringLinkTokenInputSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

@@ -9,7 +9,7 @@ from api.exceptions import (
     NoExpiringLinkCreatePermission, IncorrectExpirationTimeEntered
 )
 from api.utils import allowed_formats
-from api.models import Account, AccountTier
+from api.models import Account, AccountTier, Image
 
 
 class FileValidation:
@@ -39,14 +39,18 @@ class FileValidation:
 
 
 class ExpiringLinkTokenValidation:
-    def __init__(self, request_user: User, account_id: int, seconds: int) -> None:
+    def __init__(self, request_user: User, account_id: int, seconds: int, image_id: int) -> None:
         self.request_user = request_user
         self.account_id = account_id
         self.seconds = seconds
+        self.image_id = image_id
     
     def validate_access_to_create_token(self, account_tier: AccountTier):
-        if not account_tier.expiring_links:
-            raise NoExpiringLinkCreatePermission("Your account tier does not allow you to create a link")
+        account = Account.objects.get(pk=self.account_id)
+        image = Image.objects.get(pk=self.image_id)
+        if not (account_tier.expiring_links and self.request_user == account.owner and account == image.account):
+            raise NoExpiringLinkCreatePermission(
+                "Your account tier does not allow you to create a link or you created a link to the wrong file")
         return
     
     def validate_allowed_time_of_expiration(self, account_tier: AccountTier):

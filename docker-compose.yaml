@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: app_backend
     restart: always
-    env_file: ./config/.env
+    env_file: ./config/.env.template
     volumes:
       - static:/app/static
       - media:/app/media
@@ -19,7 +19,7 @@ services:
   app_db:
     image: postgres:14.4
     container_name: postgres_db
-    env_file: ./config/.env
+    env_file: ./config/.env.template
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always

@@ -21,3 +21,6 @@ test:
 
 backend-bash:
 		docker-compose exec app_backend bash
+
+black:
+	docker-compose exec app_backend bash -c "black ."
